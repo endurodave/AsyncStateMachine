@@ -60,6 +60,10 @@ public:
 
     std::shared_ptr<WorkerThread> GetThread() { return m_thread; }
 
+protected:
+    /// @see StateMachine::ExternalEvent()
+    void ExternalEvent(BYTE newState, const EventData* pData = NULL);
+
 private:
     std::shared_ptr<WorkerThread> m_thread = nullptr;
 };

@@ -20,5 +20,16 @@ void AsyncStateMachine::CreateThread(const std::string& threadName)
     }
 }
 
+void AsyncStateMachine::ExternalEvent(BYTE newState, const EventData* pData)
+{
+    // An asyc state machine external event must only be called on the 
+    // GetThread() thread. Typically this means an external event function
+    // is missing the ASYNC_INVOKE macro.
+    if (GetThread()->GetThreadId() != WorkerThread::GetCurrentThreadId())
+        throw std::runtime_error("External event called on wrong thread.");
+
+    StateMachine::ExternalEvent(newState, pData);
+}
+
 
 
