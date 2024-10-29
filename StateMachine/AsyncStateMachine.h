@@ -11,7 +11,7 @@
 
 /// Helper function to simplify asynchronous function invoke
 /// @param[in] obj - a class instance 
-/// @param[in] func - a class function to invoke
+/// @param[in] func - a class instance function to invoke
 /// @param[in] thread - a thread to invoke the function on
 /// @param[in] args - the class function argument(s) passed to func
 template <typename C, typename F, typename T, typename... Args>
