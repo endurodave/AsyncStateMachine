@@ -39,49 +39,51 @@ void SelfTestEngineCompleteCallback()
 //------------------------------------------------------------------------------
 int main(void)
 {	
-	// TODO: Change exceptions thrown in AsyncStateMachine!
+	try
+	{	
+		// Create the worker thread
+		userInterfaceThread.CreateThread();
 
-	// Create the worker threads
-	userInterfaceThread.CreateThread();
+		// *** Begin async Motor test ***
+		Motor motor;
 
-	// Begin async Motor test
-	Motor motor;
+		auto data = new MotorData();
+		data->speed = 100;
+		motor.SetSpeed(data);
 
-	auto data = new MotorData();
-	data->speed = 100;
-	motor.SetSpeed(data);
+		data = new MotorData();
+		data->speed = 200;
+		motor.SetSpeed(data);
 
-	data = new MotorData();
-	data->speed = 200;
-	motor.SetSpeed(data);
+		motor.Halt();
+		// *** End async Motor test ***
 
-	motor.Halt();
-	// End async Motor test
+		// *** Begin async self test ***		
+		// Register for self-test engine callbacks
+		SelfTestEngine::StatusCallback += MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
+		SelfTestEngine::GetInstance().CompletedCallback += MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
 
-	// Register for self-test engine callbacks
-	SelfTestEngine::StatusCallback += MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-	SelfTestEngine::GetInstance().CompletedCallback += MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
-	
-#if USE_WIN32_THREADS
-	// Start the worker threads
-	ThreadWin::StartAllThreads();
-#endif
+		// Start self-test engine
+		StartData startData;
+		startData.shortSelfTest = TRUE;
+		SelfTestEngine::GetInstance().Start(&startData);
 
-	// Start self-test engine
-	StartData startData;
-	startData.shortSelfTest = TRUE;
-	SelfTestEngine::GetInstance().Start(&startData);
+		// Wait for self-test engine to complete 
+		while (!selfTestEngineCompleted)
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-	// Wait for self-test engine to complete 
-	while (!selfTestEngineCompleted)
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		// Unregister for self-test engine callbacks
+		SelfTestEngine::StatusCallback -= MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
+		SelfTestEngine::GetInstance().CompletedCallback -= MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
+		// *** End async self test **
 
-	// Unregister for self-test engine callbacks
-	SelfTestEngine::StatusCallback -= MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-	SelfTestEngine::GetInstance().CompletedCallback -= MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
-
-	// Exit the worker threads
-	userInterfaceThread.ExitThread();
+		// Exit the worker thread
+		userInterfaceThread.ExitThread();
+	}
+	catch (...)
+	{
+		std::cerr << "Exception!" << std::endl;
+	}
 
 	return 0;
 }
