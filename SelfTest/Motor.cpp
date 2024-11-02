@@ -18,7 +18,7 @@ void Motor::SetSpeed(MotorData* data)
 	if (GetThreadId() != WorkerThread::GetCurrentThreadId())
 	{
 		// Asynchronously re-invoke the SetSpeed() event on Motor's thread
-		AsyncInvoke(this, &Motor::SetSpeed, *this, data);
+		AsyncInvoke(this, &Motor::SetSpeed, *GetThread(), data);
 		return;
 	}*/
 
