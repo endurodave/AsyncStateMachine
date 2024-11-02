@@ -87,6 +87,10 @@ Converting a state machine from `StateMachine` to `AsyncStateMachine` requires t
 
 ## Motor Example
 
+The `Motor` state machine diagram is shown below.
+
+![Motor State Machine](Motor.png)
+
 `Motor` inherits from `AsyncStateMachine` and implements two external events and four states.
 
 ```cpp
