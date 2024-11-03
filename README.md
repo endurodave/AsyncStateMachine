@@ -1,7 +1,25 @@
 # Asynchronous State Machine Design in C++
 An asynchronous C++ state machine implemented using an asynchronous delegate library.
 
-## Introduction
+# Table of Contents
+- [Asynchronous State Machine Design in C++](#asynchronous-state-machine-design-in-c)
+- [Table of Contents](#table-of-contents)
+- [Introduction](#introduction)
+  - [References](#references)
+- [CMake Build](#cmake-build)
+  - [Windows Visual Studio](#windows-visual-studio)
+  - [Linux Make](#linux-make)
+- [Asynchronous Delegates](#asynchronous-delegates)
+- [AsyncStateMachine](#asyncstatemachine)
+- [Motor Example](#motor-example)
+- [Self-Test Subsystem Example](#self-test-subsystem-example)
+  - [SelfTestEngine](#selftestengine)
+  - [CentrifugeTest](#centrifugetest)
+  - [Timer](#timer)
+  - [Run-Time](#run-time)
+- [Conclusion](#conclusion)
+
+# Introduction
 
 A software-based Finite State Machines (FSM) is an implementation method used to decompose a design into states and events. Simple embedded devices with no operating system employ single threading such that the state machines run on a single “thread”. More complex systems use multithreading to divvy up the processing.
 
@@ -23,18 +41,18 @@ CMake is used to create the build files. CMake is free and open-source software.
 
 * [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread) - A worker thread using the C++ thread support library.
 
-## CMake Build
+# CMake Build
 [CMake](https://cmake.org/) is used to create the project build files. See `CMakeLists.txt` for more information.
 
-### Windows Visual Studio
+## Windows Visual Studio
 
 `cmake -G "Visual Studio 17 2022" -A Win32 -B ../AsyncStateMachineBuild -S .`
 
-### Linux Make 
+## Linux Make 
 
 `cmake -G "Unix Makefiles" -B ../AsyncStateMachineBuild -S .`
 
-## Asynchronous Delegates
+# Asynchronous Delegates
 
 If you’re not familiar with a delegate, the concept is quite simple. A delegate can be thought of as a super function pointer. In C++, there's no pointer type capable of pointing to all the possible function variations: instance member, virtual, const, static, lambda, and free (global). A function pointer can’t point to instance member functions, and pointers to member functions have all sorts of limitations. However, delegate classes can, in a type-safe way, point to any function provided the function signature matches. In short, a delegate points to any function with a matching signature to support anonymous function invocation.
 
@@ -42,7 +60,7 @@ Asynchronous delegates take the concept further and permits anonymous invocation
 
 The `AsyncStateMachine` uses asynchronous delegates to inject external events into a state machine instance.
 
-## AsyncStateMachine
+# AsyncStateMachine
 
 The `AsyncStateMachine` inherits from `StateMachine`. Create an state machine thread using `CreateThread()` or alternatively attach an existing thread using `SetThread()`. 
 
@@ -85,7 +103,7 @@ Converting a state machine from `StateMachine` to `AsyncStateMachine` requires t
 2. Add `ASYNC_INVOKE()` to all external event functions.
 3. Call `CreateThread()` or `SetThread()` to attach a thread.
 
-## Motor Example
+# Motor Example
 
 The `Motor` state machine diagram is shown below.
 
@@ -187,13 +205,13 @@ Motor::Motor() :
 }
 ```
 
-## Self-Test Subsystem Example
+# Self-Test Subsystem Example
 
 Self-tests execute a series of tests on hardware and mechanical systems to ensure correct operation. In this example, there are four state machine classes implementing our self-test subsystem as shown in the inheritance diagram below:
 
 ![Self-Test Subsystem](Figure_1.png)
 
-### SelfTestEngine
+## SelfTestEngine
 
 `SelfTestEngine` is thread-safe and the main point of contact for client’s utilizing the self-test subsystem. `CentrifugeTest` and `PressureTest` are members of `SelfTestEngine`. `SelfTestEngine` is responsible for sequencing the individual self-tests in the correct order as shown in the state diagram below. 
 
@@ -319,13 +337,13 @@ STATE_DEFINE(SelfTest, Failed, NoEventData)
 
 One might ask why the state machines use asynchronous delegate callbacks. If the state machines are on the same thread, why not use a normal, synchronous callback instead? The problem to prevent is a callback into a currently executing state machine, that is, the call stack wrapping back around into the same class instance. For example, the following call sequence should be prevented: `SelfTestEngine` calls `CentrifugeTest` calls back `SelfTestEngine`. An asynchronous callback allows the stack to unwind and prevents this unwanted behavior.
 
-### CentrifugeTest
+## CentrifugeTest
 
 The `CentrifugeTest` state machine diagram shown below implements the centrifuge self-test. `CentrifugeTest` uses state machine inheritance by inheriting the `Idle`, `Completed` and `Failed` states from the `SelfTest` class. The `Timer` class is used to provide `Poll` events via asynchronous delegate callbacks.
 
 ![Centrifuge Test State Machine](CentrifugeTest.png)
 
-### Timer
+## Timer
 
 The `Timer` class provides a common mechanism to receive function callbacks by registering with `Expired`. `Start()` starts the callbacks at a particular interval. `Stop()` stops the callbacks.
 
@@ -360,7 +378,7 @@ public:
     // etc...
 ```
 
-### Run-Time
+## Run-Time
 
 The program’s `main()` function is shown below. It creates the two threads, registers for callbacks from `SelfTestEngine`, then calls `Start()` to start the self-tests.
 
@@ -432,7 +450,7 @@ void SelfTestEngineCompleteCallback()
 }
 ```
 
-## Conclusion
+# Conclusion
 
 The `AsyncStateMachine` class allows state machine objects to operate in their own thread context. The `DelegateLib` library offer cross-thread event generation for easy collaboration between state machines.
 
