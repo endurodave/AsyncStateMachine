@@ -1,4 +1,10 @@
+![License MIT](https://img.shields.io/github/license/BehaviorTree/BehaviorTree.CPP?color=blue)
+[![conan Ubuntu](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_ubuntu.yml/badge.svg)](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_ubuntu.yml)
+[![conan Ubuntu](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_clang.yml/badge.svg)](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_clang.yml)
+[![conan Windows](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_windows.yml/badge.svg)](https://github.com/endurodave/AsyncStateMachine/actions/workflows/cmake_windows.yml)
+
 # Asynchronous State Machine Design in C++
+
 An asynchronous C++ state machine implemented using an asynchronous delegate library.
 
 # Table of Contents
@@ -25,7 +31,7 @@ A software-based Finite State Machines (FSM) is an implementation method used to
 
 This repository covers how to use a C++ state machines within the context of a multithreaded environment. A new `AsyncStateMachine` class extends the functionality of `StateMachine` documented in [State Machine Design in C++](https://github.com/endurodave/StateMachine). The asynchronous state machine utilizes a C++ `std::thread` for thread support as covered within [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread). Any OS thread is easy adapted. The `std::thread` was convenient for cross-platform Windows and Linux usage.
 
-The `AsyncStateMachine` leverages the asynchronous delegate library documented in [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/AsyncMulticastDelegateModern). In short, the library is capable of targeting any callable function synchronously or asynchronously.
+The `AsyncStateMachine` leverages the asynchronous delegate library documented in [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/cpp-async-delegate). In short, the library is capable of targeting any callable function synchronously or asynchronously.
 
 The goal for the article is to provide a complete working project with threads, timers, events, and state machines all working together. To illustrate the concept, the example project implements a state-based self-test engine utilizing asynchronous communication between state machines.
 
@@ -46,11 +52,11 @@ CMake is used to create the build files. CMake is free and open-source software.
 
 ## Windows Visual Studio
 
-`cmake -G "Visual Studio 17 2022" -A Win32 -B ../AsyncStateMachineBuild -S .`
+`cmake -G "Visual Studio 17 2022" -A Win32 -B Build -S .`
 
 ## Linux Make 
 
-`cmake -G "Unix Makefiles" -B ../AsyncStateMachineBuild -S .`
+`cmake -G "Unix Makefiles" -B Build -S .`
 
 # Asynchronous Delegates
 
