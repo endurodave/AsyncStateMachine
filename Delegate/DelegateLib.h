@@ -2,7 +2,7 @@
 #define _DELEGATE_LIB_H
 
 // Delegate.h
-// @see https://github.com/endurodave/AsyncMulticastDelegateModern
+// @see https://github.com/endurodave/cpp-async-delegate
 // David Lafreniere, Aug 2020.
 
 /// @file
@@ -46,13 +46,13 @@
 /// exceptions.
 /// 
 /// Github responsitory location:  
-/// https://github.com/endurodave/AsyncMulticastDelegateModern
+/// https://github.com/endurodave/cpp-async-delegate
 ///
 /// See README.md, DETAILS.md, and source code Doxygen comments for more information.
 
 #include "DelegateOpt.h"
 #include "MulticastDelegateSafe.h"
-#include "SinglecastDelegate.h"
+#include "UnicastDelegate.h"
 #include "DelegateAsync.h"
 #include "DelegateAsyncWait.h"
 
