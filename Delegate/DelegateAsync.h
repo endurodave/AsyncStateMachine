@@ -146,7 +146,7 @@ public:
     /// and copying the state of the current object to it. 
     /// @return A pointer to a new `ClassType` instance.
     /// @post The caller is responsible for deleting the clone object.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual ClassType* Clone() const override {
         return new(std::nothrow) ClassType(*this);
     }
@@ -220,7 +220,7 @@ public:
     /// @details Invoke delegate function asynchronously and do not wait for return value.
     /// This function is called by the source thread. Dispatches the delegate data into the 
     /// destination thread message queue. `Invoke()` must be called by the destination 
-    /// thread to invoke the target function.
+    /// thread to invoke the target function. Always safe to call.
     /// 
     /// The `DelegateAsyncMsg` duplicates and copies the function arguments into heap memory. 
     /// The source thread is not required to place function arguments into the heap. The delegate
@@ -230,7 +230,7 @@ public:
     /// @return A default return value. The return value is *not* returned from the 
     /// target function. Do not use the return value.
     /// @post Do not use the return value as its not valid.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual RetType operator()(Args... args) override {
         if (this->Empty())
             return RetType();
@@ -272,7 +272,7 @@ public:
     }
 
     /// @brief Invoke delegate function asynchronously. Do not wait for return value.
-    /// Called by the source thread.
+    /// Called by the source thread. Always safe to call.
     /// @param[in] args The function arguments, if any.
     void AsyncInvoke(Args... args) {
         operator()(std::forward<Args>(args)...);
@@ -446,7 +446,7 @@ public:
     /// and copying the state of the current object to it. 
     /// @return A pointer to a new `ClassType` instance.
     /// @post The caller is responsible for deleting the clone object.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual ClassType* Clone() const override {
         return new(std::nothrow) ClassType(*this);
     }
@@ -520,7 +520,7 @@ public:
     /// @details Invoke delegate function asynchronously and do not wait for return value.
     /// This function is called by the source thread. Dispatches the delegate data into the 
     /// destination thread message queue. `Invoke()` must be called by the destination 
-    /// thread to invoke the target function.
+    /// thread to invoke the target function. Always safe to call.
     /// 
     /// The `DelegateAsyncMsg` duplicates and copies the function arguments into heap memory. 
     /// The source thread is not required to place function arguments into the heap. The delegate
@@ -530,7 +530,7 @@ public:
     /// @return A default return value. The return value is *not* returned from the 
     /// target function. Do not use the return value.
     /// @post Do not use the return value as its not valid.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual RetType operator()(Args... args) override {
         if (this->Empty())
             return RetType();
@@ -572,7 +572,7 @@ public:
     }
 
     /// @brief Invoke delegate function asynchronously. Do not wait for return value.
-    /// Called by the source thread.
+    /// Called by the source thread. Always safe to call.
     /// @param[in] args The function arguments, if any.
     void AsyncInvoke(Args... args) {
         operator()(std::forward<Args>(args)...);
@@ -687,7 +687,7 @@ public:
     /// and copying the state of the current object to it. 
     /// @return A pointer to a new `ClassType` instance.
     /// @post The caller is responsible for deleting the clone object.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual ClassType* Clone() const override {
         return new(std::nothrow) ClassType(*this);
     }
@@ -761,7 +761,7 @@ public:
     /// @details Invoke delegate function asynchronously and do not wait for return value.
     /// This function is called by the source thread. Dispatches the delegate data into the 
     /// destination thread message queue. `Invoke()` must be called by the destination 
-    /// thread to invoke the target function.
+    /// thread to invoke the target function. Always safe to call.
     /// 
     /// The `DelegateAsyncMsg` duplicates and copies the function arguments into heap memory. 
     /// The source thread is not required to place function arguments into the heap. The delegate
@@ -771,7 +771,7 @@ public:
     /// @return A default return value. The return value is *not* returned from the 
     /// target function. Do not use the return value.
     /// @post Do not use the return value as its not valid.
-    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS no defined.
+    /// @throws std::bad_alloc If dynamic memory allocation fails and USE_ASSERTS not defined.
     virtual RetType operator()(Args... args) override {
         if (this->Empty())
             return RetType();
@@ -813,7 +813,7 @@ public:
     }
 
     /// @brief Invoke delegate function asynchronously. Do not wait for return value.
-    /// Called by the source thread.
+    /// Called by the source thread. Always safe to call.
     /// @param[in] args The function arguments, if any.
     void AsyncInvoke(Args... args) {
         operator()(std::forward<Args>(args)...);

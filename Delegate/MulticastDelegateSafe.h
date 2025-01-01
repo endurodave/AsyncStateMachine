@@ -28,10 +28,18 @@ public:
 
     /// Invoke the bound target function for all stored delegate instances.
     /// A void return value is used since multiple targets invoked.
-    /// @param[in] args The farguments used when invoking the target function
+    /// @param[in] args The arguments used when invoking the target functions
     void operator()(Args... args) {
         const std::lock_guard<std::mutex> lock(m_lock);
         BaseType::operator ()(args...);
+    }
+
+    /// Invoke all bound target functions. A void return value is used 
+    /// since multiple targets invoked.
+    /// @param[in] args The arguments used when invoking the target functions
+    void Broadcast(Args... args) {
+        const std::lock_guard<std::mutex> lock(m_lock);
+        BaseType::Broadcast(args...);
     }
 
     /// Insert a delegate into the container.
@@ -43,7 +51,7 @@ public:
 
     /// Insert a delegate into the container.
     /// @param[in] delegate A delegate target to insert
-    void operator+=(const Delegate<RetType(Args...)>&& delegate) {
+    void operator+=(Delegate<RetType(Args...)>&& delegate) {
         const std::lock_guard<std::mutex> lock(m_lock);
         BaseType::operator +=(delegate);
     }
@@ -57,7 +65,7 @@ public:
 
     /// Remove a delegate from the container.
     /// @param[in] delegate A delegate target to remove
-    void operator-=(const Delegate<RetType(Args...)>&& delegate) {
+    void operator-=(Delegate<RetType(Args...)>&& delegate) {
         const std::lock_guard<std::mutex> lock(m_lock);
         BaseType::operator -=(delegate);
     }
@@ -84,6 +92,20 @@ public:
     virtual void operator=(std::nullptr_t) noexcept { 
         const std::lock_guard<std::mutex> lock(m_lock);
         return BaseType::Clear(); 
+    }
+
+    /// Insert a delegate into the container.
+    /// @param[in] delegate A delegate target to insert
+    void PushBack(const DelegateType& delegate) {
+        const std::lock_guard<std::mutex> lock(m_lock);
+        return BaseType::PushBack(delegate);
+    }
+
+    /// Remove a delegate into the container.
+    /// @param[in] delegate The delegate target to remove.
+    void Remove(const DelegateType& delegate) {
+        const std::lock_guard<std::mutex> lock(m_lock);
+        return BaseType::Remove(delegate);
     }
 
     /// Any registered delegates?

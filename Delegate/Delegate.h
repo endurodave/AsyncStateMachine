@@ -153,7 +153,7 @@ public:
         m_func = rhs.m_func; 
     }
 
-    /// @brief Invoke the bound delegate function synchronously. 
+    /// @brief Invoke the bound delegate function synchronously. Always safe to call.
     /// @param[in] args - the function arguments, if any.
     /// @return The bound function return value, if any. If empty delegate
     /// default return type returned. 
@@ -363,7 +363,7 @@ public:
         m_func = rhs.m_func;
     }
 
-    /// @brief Invoke the bound delegate function synchronously. 
+    /// @brief Invoke the bound delegate function synchronously. Always safe to call.
     /// @param[in] args - the function arguments, if any.
     /// @return The bound function return value, if any. If empty delegate
     /// default return type returned. 
@@ -527,7 +527,12 @@ public:
     /// @param[in] func The `std::function` to bind to the delegate. This function must 
     /// match the signature of the delegate.
     void Bind(FunctionType func) {
-        m_func = func;
+        try {
+            m_func = func;
+        }
+        catch (const std::bad_alloc&) {
+            BAD_ALLOC();
+        }
     }
 
     /// Compares two ClassType objects using the '<' operator.
@@ -555,7 +560,7 @@ public:
         m_func = rhs.m_func;
     }
 
-    /// @brief Invoke the bound delegate function synchronously. 
+    /// @brief Invoke the bound delegate function synchronously. Always safe to call.
     /// @param[in] args - the function arguments, if any.
     /// @return The bound function return value, if any. If empty delegate
     /// default return type returned. 
