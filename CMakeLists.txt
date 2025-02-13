@@ -36,10 +36,10 @@ source_group("Delegate Files" FILES ${DMQ_LIB_SOURCES})
 
 # Add subdirectories to include path
 include_directories( 
+    SelfTest
+    StateMachine
+    Port
     ${DMQ_ROOT_DIR}
-    ${CMAKE_SOURCE_DIR}/SelfTest
-    ${CMAKE_SOURCE_DIR}/StateMachine
-    ${CMAKE_SOURCE_DIR}/Port
 )
 
 # Add an executable target
