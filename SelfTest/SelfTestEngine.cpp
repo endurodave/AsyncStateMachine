@@ -51,7 +51,7 @@ void SelfTestEngine::Start(const StartData* data)
 {
 	// ASYNC_INVOKE macro below effectively executes the following code
 	// Is the caller executing on m_thread?
-    /* if (GetThread()->GetThreadId() != WorkerThread::GetCurrentThreadId())
+    /* if (GetThread()->GetThreadId() != Thread::GetCurrentThreadId())
     {
         // Create an asynchronous delegate and reinvoke the function call on m_thread
         auto delegate = MakeDelegate(this, &SelfTestEngine::Start, *GetThread());

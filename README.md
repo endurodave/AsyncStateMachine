@@ -31,11 +31,11 @@ A software-based Finite State Machines (FSM) is an implementation method used to
 
 This repository covers how to use a C++ state machines within the context of a multithreaded environment. A new `AsyncStateMachine` class extends the functionality of `StateMachine` documented in [State Machine Design in C++](https://github.com/endurodave/StateMachine). The asynchronous state machine utilizes a C++ `std::thread` for thread support as covered within [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread). Any OS thread is easy adapted. The `std::thread` was convenient for cross-platform Windows and Linux usage.
 
-The `AsyncStateMachine` leverages the asynchronous delegate library documented in [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/cpp-async-delegate). In short, the library is capable of targeting any callable function synchronously or asynchronously.
+The `AsyncStateMachine` leverages the asynchronous delegate library documented in [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/DelegateMQ). In short, the library is capable of targeting any callable function synchronously or asynchronously.
 
 The goal for the article is to provide a complete working project with threads, timers, events, and state machines all working together. To illustrate the concept, the example project implements a state-based self-test engine utilizing asynchronous communication between state machines.
 
-The state machine and delegate implementations will not be reexplained here. This article focuses on the `AsyncStateMachine` enhancement and integration with the `DelegateLib` library.
+The state machine and delegate implementations will not be reexplained here. This article focuses on the `AsyncStateMachine` enhancement and integration with the `DelegateMQ` library.
 
 CMake is used to create the build files. CMake is free and open-source software. Windows, Linux and other toolchains are supported. See the `CMakeLists.txt` file for more information.
 
@@ -86,12 +86,12 @@ public:
     void CreateThread(const std::string& threadName);
 
     /// Set a thread for this state machine
-    /// @param[in] thread - a WorkerThread instance
-    void SetThread(std::shared_ptr<WorkerThread> thread) { m_thread = thread;  }
+    /// @param[in] thread - a Thread instance
+    void SetThread(std::shared_ptr<Thread> thread) { m_thread = thread;  }
 
     /// Get the thread attached to this state machine
-    /// @return A WorkerThread instance
-    std::shared_ptr<WorkerThread> GetThread() { return m_thread; }
+    /// @return A Thread instance
+    std::shared_ptr<Thread> GetThread() { return m_thread; }
 
 protected:
     /// @see StateMachine::ExternalEvent()
@@ -99,7 +99,7 @@ protected:
 
 private:
     // The worker thread instance the state machine executes on
-    std::shared_ptr<WorkerThread> m_thread = nullptr;
+    std::shared_ptr<Thread> m_thread = nullptr;
 };
 ```
 
@@ -130,7 +130,7 @@ public:
 };
 
 // Motor is an asynchronous state machine. All external events are executed
-// on the Motor thread of control. The DelegateLib library handles invoking 
+// on the Motor thread of control. The DelegateMQ library handles invoking 
 // functions asynchronously.
 class Motor : public AsyncStateMachine
 {
@@ -174,14 +174,14 @@ private:
 #endif
 ```
 
-The `Motor::SetSpeed()` external event uses the `ASYNC_INVOKE()` macro to invoke the function on the `Motor` thread of control using the `DelegateLib` library. `ASYNC_INVOKE()` is non-blocking and inserts a message into the `Motor` thread's event queue with pointers to the function and argument, then early returns. Later, the `Motor` thread dequeues the message and calls `Motor::SetSpeed()` on `Motor`'s thread context. The `SetSpeed()` external event function is thread-safe callable by anyone.
+The `Motor::SetSpeed()` external event uses the `ASYNC_INVOKE()` macro to invoke the function on the `Motor` thread of control using the `DelegateMQ` library. `ASYNC_INVOKE()` is non-blocking and inserts a message into the `Motor` thread's event queue with pointers to the function and argument, then early returns. Later, the `Motor` thread dequeues the message and calls `Motor::SetSpeed()` on `Motor`'s thread context. The `SetSpeed()` external event function is thread-safe callable by anyone.
 
 ```cpp
 void Motor::SetSpeed(MotorData* data)
 {
 	/* ASYNC_INVOKE below effectively executes the following code:
 	// Is this function call executing on this state machine thread?
-	if (GetThreadId() != WorkerThread::GetCurrentThreadId())
+	if (GetThreadId() != Thread::GetCurrentThreadId())
 	{
 		// Asynchronously re-invoke the SetSpeed() event on Motor's thread
 		AsyncInvoke(this, &Motor::SetSpeed, *GetThread(), data);
@@ -458,5 +458,5 @@ void SelfTestEngineCompleteCallback()
 
 # Conclusion
 
-The `AsyncStateMachine` class allows state machine objects to operate in their own thread context. The `DelegateLib` library offer cross-thread event generation for easy collaboration between state machines.
+The `AsyncStateMachine` class allows state machine objects to operate in their own thread context. The `DelegateMQ` library offer cross-thread event generation for easy collaboration between state machines.
 

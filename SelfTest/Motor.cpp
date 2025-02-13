@@ -15,7 +15,7 @@ void Motor::SetSpeed(MotorData* data)
 {
 	/* ASYNC_INVOKE below effectively executes the following code:
 	// Is this function call executing on this state machine thread?
-	if (GetThreadId() != WorkerThread::GetCurrentThreadId())
+	if (GetThreadId() != Thread::GetCurrentThreadId())
 	{
 		// Asynchronously re-invoke the SetSpeed() event on Motor's thread
 		AsyncInvoke(this, &Motor::SetSpeed, *GetThread(), data);

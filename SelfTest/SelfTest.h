@@ -2,9 +2,9 @@
 #define _SELF_TEST_H
 
 #include "AsyncStateMachine.h"
-#include "DelegateLib.h"
+#include "DelegateMQ.h"
 
-using namespace DelegateLib;
+using namespace dmq;
 
 /// @brief Start event data
 struct StartData : public EventData

@@ -2,7 +2,6 @@
 #define _CENTRIFUGE_TEST_H
 
 #include "SelfTest.h"
-#include "Timer.h"
 
 // @brief CentrifugeTest shows StateMachine features including state machine
 // inheritance, state function override, and guard/entry/exit actions. SelfTest

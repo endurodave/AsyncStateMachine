@@ -1,7 +1,6 @@
-#include "DelegateLib.h"
+#include "DelegateMQ.h"
 #include "SelfTestEngine.h"
 #include <iostream>
-#include "WorkerThreadStd.h"
 #include "DataTypes.h"
 #include "Motor.h"
 
@@ -9,13 +8,24 @@
 // David Lafreniere
 
 using namespace std;
-using namespace DelegateLib;
+using namespace dmq;
 
 // A thread to capture self-test status callbacks for output to the "user interface"
-WorkerThread userInterfaceThread("UserInterface");
+Thread userInterfaceThread("UserInterface");
 
 // Simple flag to exit main loop
 BOOL selfTestEngineCompleted = FALSE;
+
+std::atomic<bool> processTimerExit = false;
+static void ProcessTimers()
+{
+	while (!processTimerExit.load())
+	{
+		// Process all delegate-based timers
+		Timer::ProcessTimers();
+		std::this_thread::sleep_for(std::chrono::microseconds(50));
+	}
+}
 
 //------------------------------------------------------------------------------
 // SelfTestEngineStatusCallback
@@ -39,6 +49,9 @@ void SelfTestEngineCompleteCallback()
 //------------------------------------------------------------------------------
 int main(void)
 {	
+	// Start the thread that will run ProcessTimers
+	std::thread timerThread(ProcessTimers);
+
 	try
 	{	
 		// Create the worker thread
@@ -84,6 +97,11 @@ int main(void)
 	{
 		std::cerr << "Exception!" << std::endl;
 	}
+
+	// Ensure the timer thread completes before main exits
+	processTimerExit.store(true);
+	if (timerThread.joinable())
+		timerThread.join();
 
 	return 0;
 }

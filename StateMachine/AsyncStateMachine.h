@@ -5,8 +5,7 @@
 // David Lafreniere
 
 #include "StateMachine.h"
-#include "DelegateLib.h"
-#include "WorkerThreadStd.h"
+#include "DelegateMQ.h"
 #include <string>
 
 /// Helper function to simplify asynchronous function invoke
@@ -30,7 +29,7 @@ void AsyncInvoke(C obj, F func, T& thread, Args&&... args)
         throw std::invalid_argument("One or more arguments are nullptr.");
     
     // Asynchronously call target function
-    DelegateLib::MakeDelegate(obj, func, thread)(std::forward<Args>(args)...);
+    dmq::MakeDelegate(obj, func, thread)(std::forward<Args>(args)...);
 }
 
 // Macro to simplify async function invocation within a state machine external event
@@ -41,18 +40,18 @@ void AsyncInvoke(C obj, F func, T& thread, Args&&... args)
     { \
         if (!GetThread()) \
             throw std::runtime_error("Thread is not initialized (nullptr)."); \
-        if (GetThread()->GetThreadId() != WorkerThread::GetCurrentThreadId()) { \
+        if (GetThread()->GetThreadId() != Thread::GetCurrentThreadId()) { \
             AsyncInvoke(this, &stateMachine::stateName, *GetThread(), ##__VA_ARGS__); \
             return; \
         } \
     }
 
-// AsyncStateMachine is a StateMachine and uses a WorkerThread. WorkerThread provides
+// AsyncStateMachine is a StateMachine and uses a Thread. Thread provides
 // a C++ std::thread worker thread with a message queue. A delegate asynchronous 
 // function invocation inserts a message into the message queue using 
-// DelegateThread::DispatchDelegate(). External state machine events utilize 
+// Thread::DispatchDelegate(). External state machine events utilize 
 // ASYNC_INVOKE to generate an external event on the state machine's worker thread.
-// WorkerThread uses a std::thread, however any OS thread API is possible. The only 
+// Thread uses a std::thread, however any OS thread API is possible. The only 
 // requirement is that the thread implement DispatchDelegate() for queue insertion.
 // The destination thread must dequeue the delegate message and call DelegateInvoke().
 // See https://github.com/endurodave/AsyncMulticastDelegateModern
@@ -71,12 +70,12 @@ public:
     void CreateThread(const std::string& threadName);
 
     /// Set a thread for this state machine
-    /// @param[in] thread - a WorkerThread instance
-    void SetThread(std::shared_ptr<WorkerThread> thread) { m_thread = thread;  }
+    /// @param[in] thread - a Thread instance
+    void SetThread(std::shared_ptr<Thread> thread) { m_thread = thread;  }
 
     /// Get the thread attached to this state machine
-    /// @return A WorkerThread instance
-    std::shared_ptr<WorkerThread> GetThread() { return m_thread; }
+    /// @return A Thread instance
+    std::shared_ptr<Thread> GetThread() { return m_thread; }
 
 protected:
     /// @see StateMachine::ExternalEvent()
@@ -84,7 +83,7 @@ protected:
 
 private:
     // The worker thread instance the state machine executes on
-    std::shared_ptr<WorkerThread> m_thread = nullptr;
+    std::shared_ptr<Thread> m_thread = nullptr;
 };
 
 #endif // _ASYNC_STATE_MACHINE_H

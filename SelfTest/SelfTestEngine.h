@@ -4,10 +4,9 @@
 #include "SelfTest.h"
 #include "CentrifugeTest.h"
 #include "PressureTest.h"
-#include "DelegateLib.h"
-#include "WorkerThreadStd.h"
+#include "DelegateMQ.h"
 
-using namespace DelegateLib;
+using namespace dmq;
 
 struct SelfTestStatus
 {
