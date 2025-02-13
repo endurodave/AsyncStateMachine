@@ -1,5 +1,5 @@
-#ifndef _FAULT_H
-#define _FAULT_H
+#ifndef _FAULT_H_
+#define _FAULT_H_
 
 #ifdef __cplusplus
 extern "C" {
