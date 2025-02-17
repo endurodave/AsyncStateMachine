@@ -13,7 +13,6 @@ cmake_minimum_required(VERSION 3.10)
 project(AsyncStateMachine VERSION 1.0 LANGUAGES CXX)
 
 # Set build options
-set (DMQ_EXTERNAL_LIB "OFF")
 set (DMQ_ALLOCATOR "OFF")
 set (DMQ_UTIL "ON")
 set (DMQ_THREAD "DMQ_THREAD_STDLIB")
