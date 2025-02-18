@@ -31,7 +31,7 @@ A software-based Finite State Machines (FSM) is an implementation method used to
 
 This repository covers how to use a C++ state machines within the context of a multithreaded environment. A new `AsyncStateMachine` class extends the functionality of `StateMachine` documented in [State Machine Design in C++](https://github.com/endurodave/StateMachine). The asynchronous state machine utilizes a C++ `std::thread` for thread support as covered within [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread). Any OS thread is easy adapted. The `std::thread` was convenient for cross-platform Windows and Linux usage.
 
-The `AsyncStateMachine` leverages the asynchronous delegate library documented in [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/DelegateMQ). In short, the library is capable of targeting any callable function synchronously or asynchronously.
+The `AsyncStateMachine` leverages the asynchronous delegate library documented in [DelegateMQ](https://github.com/endurodave/DelegateMQ). In short, the library is capable of targeting any callable function synchronously or asynchronously.
 
 The goal for the article is to provide a complete working project with threads, timers, events, and state machines all working together. To illustrate the concept, the example project implements a state-based self-test engine utilizing asynchronous communication between state machines.
 
@@ -43,7 +43,7 @@ CMake is used to create the build files. CMake is free and open-source software.
 
 * [State Machine Design in C++](https://github.com/endurodave/StateMachine) - A compact C++ finite state machine (FSM) implementation.
 
-* [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/AsyncMulticastDelegateModern) - A C++ delegate library capable of targeting any callable function synchronously or asynchronously.
+* [DelegateMQ in C++](https://github.com/endurodave/DelegateMQ) - A C++ delegate library capable of targeting any callable function synchronously or asynchronously.
 
 * [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread) - A worker thread using the C++ thread support library.
 
@@ -62,7 +62,7 @@ CMake is used to create the build files. CMake is free and open-source software.
 
 If you’re not familiar with a delegate, the concept is quite simple. A delegate can be thought of as a super function pointer. In C++, there's no pointer type capable of pointing to all the possible function variations: instance member, virtual, const, static, lambda, and free (global). A function pointer can’t point to instance member functions, and pointers to member functions have all sorts of limitations. However, delegate classes can, in a type-safe way, point to any function provided the function signature matches. In short, a delegate points to any function with a matching signature to support anonymous function invocation.
 
-Asynchronous delegates take the concept further and permits anonymous invocation of any function on a client specified thread of control. The function and all arguments are safely called from a destination thread simplifying inter-thread communication and eliminating cross-threading errors. The repository [Asynchronous Multicast Delegates in C++](https://github.com/endurodave/AsyncMulticastDelegateModern) covers usage patterns in detail.
+Asynchronous delegates take the concept further and permits anonymous invocation of any function on a client specified thread of control. The function and all arguments are safely called from a destination thread simplifying inter-thread communication and eliminating cross-threading errors. The repository [DelegateMQ](https://github.com/endurodave/DelegateMQ) covers usage patterns in detail.
 
 The `AsyncStateMachine` uses asynchronous delegates to inject external events into a state machine instance.
 
