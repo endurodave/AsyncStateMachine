@@ -126,7 +126,7 @@ The `Motor` state machine diagram is shown below.
 class MotorData : public EventData
 {
 public:
-	INT speed;
+    INT speed;
 };
 
 // Motor is an asynchronous state machine. All external events are executed
@@ -135,40 +135,40 @@ public:
 class Motor : public AsyncStateMachine
 {
 public:
-	Motor();
+    Motor();
 
-	// External events taken by this state machine
-	void SetSpeed(MotorData* data);
-	void Halt();
+    // External events taken by this state machine
+    void SetSpeed(MotorData* data);
+    void Halt();
 
 private:
-	INT m_currentSpeed; 
+    INT m_currentSpeed; 
 
-	// State enumeration order must match the order of state method entries
-	// in the state map.
-	enum States
-	{
-		ST_IDLE,
-		ST_STOP,
-		ST_START,
-		ST_CHANGE_SPEED,
-		ST_MAX_STATES
-	};
+    // State enumeration order must match the order of state method entries
+    // in the state map.
+    enum States
+    {
+        ST_IDLE,
+        ST_STOP,
+        ST_START,
+        ST_CHANGE_SPEED,
+        ST_MAX_STATES
+    };
 
-	// Define the state machine state functions with event data type
-	STATE_DECLARE(Motor, 	Idle,			NoEventData)
-	STATE_DECLARE(Motor, 	Stop,			NoEventData)
-	STATE_DECLARE(Motor, 	Start,			MotorData)
-	STATE_DECLARE(Motor, 	ChangeSpeed,	MotorData)
+    // Define the state machine state functions with event data type
+    STATE_DECLARE(Motor, 	Idle,			NoEventData)
+    STATE_DECLARE(Motor, 	Stop,			NoEventData)
+    STATE_DECLARE(Motor, 	Start,			MotorData)
+    STATE_DECLARE(Motor, 	ChangeSpeed,	MotorData)
 
-	// State map to define state object order. Each state map entry defines a
-	// state object.
-	BEGIN_STATE_MAP
-		STATE_MAP_ENTRY(&Idle)
-		STATE_MAP_ENTRY(&Stop)
-		STATE_MAP_ENTRY(&Start)
-		STATE_MAP_ENTRY(&ChangeSpeed)
-	END_STATE_MAP	
+    // State map to define state object order. Each state map entry defines a
+    // state object.
+    BEGIN_STATE_MAP
+        STATE_MAP_ENTRY(&Idle)
+        STATE_MAP_ENTRY(&Stop)
+        STATE_MAP_ENTRY(&Start)
+        STATE_MAP_ENTRY(&ChangeSpeed)
+    END_STATE_MAP	
 };
 
 #endif
@@ -179,24 +179,24 @@ The `Motor::SetSpeed()` external event uses the `ASYNC_INVOKE()` macro to invoke
 ```cpp
 void Motor::SetSpeed(MotorData* data)
 {
-	/* ASYNC_INVOKE below effectively executes the following code:
-	// Is this function call executing on this state machine thread?
-	if (GetThreadId() != Thread::GetCurrentThreadId())
-	{
-		// Asynchronously re-invoke the SetSpeed() event on Motor's thread
-		AsyncInvoke(this, &Motor::SetSpeed, *GetThread(), data);
-		return;
-	}*/
+    /* ASYNC_INVOKE below effectively executes the following code:
+    // Is this function call executing on this state machine thread?
+    if (GetThreadId() != Thread::GetCurrentThreadId())
+    {
+        // Asynchronously re-invoke the SetSpeed() event on Motor's thread
+        AsyncInvoke(this, &Motor::SetSpeed, *GetThread(), data);
+        return;
+    }*/
 
-	// Asynchronously invoke Motor::SetSpeed on the Motor thread of control
-	ASYNC_INVOKE(Motor, SetSpeed, data);
+    // Asynchronously invoke Motor::SetSpeed on the Motor thread of control
+    ASYNC_INVOKE(Motor, SetSpeed, data);
 
-	BEGIN_TRANSITION_MAP			              			// - Current State -
-		TRANSITION_MAP_ENTRY (ST_START)						// ST_IDLE
-		TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_STOP
-		TRANSITION_MAP_ENTRY (ST_CHANGE_SPEED)				// ST_START
-		TRANSITION_MAP_ENTRY (ST_CHANGE_SPEED)				// ST_CHANGE_SPEED
-	END_TRANSITION_MAP(data)
+    BEGIN_TRANSITION_MAP			              			// - Current State -
+        TRANSITION_MAP_ENTRY (ST_START)						// ST_IDLE
+        TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_STOP
+        TRANSITION_MAP_ENTRY (ST_CHANGE_SPEED)				// ST_START
+        TRANSITION_MAP_ENTRY (ST_CHANGE_SPEED)				// ST_CHANGE_SPEED
+    END_TRANSITION_MAP(data)
 }
 ```
 
@@ -204,10 +204,10 @@ The `Motor` constructor creates the thread at runtime.
 
 ```cpp
 Motor::Motor() :
-	AsyncStateMachine(ST_MAX_STATES),
-	m_currentSpeed(0)
+    AsyncStateMachine(ST_MAX_STATES),
+    m_currentSpeed(0)
 {
-	CreateThread("Motor");
+    CreateThread("Motor");
 }
 ```
 
@@ -228,16 +228,16 @@ The `Start` event initiates the self-test engine. `SelfTestEngine::Start()` is a
 ```cpp
 void SelfTestEngine::Start(const StartData* data)
 {
-	// Asynchronously invoke SelfTestEngine::Start on the SelfTestEngine thread of control
-	ASYNC_INVOKE(SelfTestEngine, Start, data);
+    // Asynchronously invoke SelfTestEngine::Start on the SelfTestEngine thread of control
+    ASYNC_INVOKE(SelfTestEngine, Start, data);
 
-	BEGIN_TRANSITION_MAP			              			// - Current State -
-		TRANSITION_MAP_ENTRY (ST_START_CENTRIFUGE_TEST)		// ST_IDLE
-		TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_COMPLETED
-		TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_FAILED
-		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_START_CENTRIFUGE_TEST
-		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_START_PRESSURE_TEST
-	END_TRANSITION_MAP(data)
+    BEGIN_TRANSITION_MAP			              			// - Current State -
+        TRANSITION_MAP_ENTRY (ST_START_CENTRIFUGE_TEST)		// ST_IDLE
+        TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_COMPLETED
+        TRANSITION_MAP_ENTRY (CANNOT_HAPPEN)				// ST_FAILED
+        TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_START_CENTRIFUGE_TEST
+        TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_START_PRESSURE_TEST
+    END_TRANSITION_MAP(data)
 }
 ```
 
@@ -251,49 +251,49 @@ The `SelfTest` base class provides three states common to all `SelfTest`-derived
 class SelfTestEngine : public SelfTest
 {
 public:
-	// Clients register for asynchronous self-test status callbacks
-	static MulticastDelegateSafe<void(const SelfTestStatus&)> StatusCallback;
+    // Clients register for asynchronous self-test status callbacks
+    static MulticastDelegateSafe<void(const SelfTestStatus&)> StatusCallback;
 
-	// Singleton instance of SelfTestEngine
-	static SelfTestEngine& GetInstance();
+    // Singleton instance of SelfTestEngine
+    static SelfTestEngine& GetInstance();
 
-	// Start the self-tests. This is a thread-safe asycnhronous function. 
-	void Start(const StartData* data);
+    // Start the self-tests. This is a thread-safe asycnhronous function. 
+    void Start(const StartData* data);
 
-	static void InvokeStatusCallback(std::string msg);
+    static void InvokeStatusCallback(std::string msg);
 
 private:
-	SelfTestEngine();
-	void Complete();
+    SelfTestEngine();
+    void Complete();
 
-	// Sub self-test state machines 
-	CentrifugeTest m_centrifugeTest;
-	PressureTest m_pressureTest;
+    // Sub self-test state machines 
+    CentrifugeTest m_centrifugeTest;
+    PressureTest m_pressureTest;
 
-	StartData m_startData;
+    StartData m_startData;
 
-	// State enumeration order must match the order of state method entries
-	// in the state map.
-	enum States
-	{
-		ST_START_CENTRIFUGE_TEST = SelfTest::ST_MAX_STATES,
-		ST_START_PRESSURE_TEST,
-		ST_MAX_STATES
-	};
+    // State enumeration order must match the order of state method entries
+    // in the state map.
+    enum States
+    {
+        ST_START_CENTRIFUGE_TEST = SelfTest::ST_MAX_STATES,
+        ST_START_PRESSURE_TEST,
+        ST_MAX_STATES
+    };
 
-	// Define the state machine state functions with event data type
-	STATE_DECLARE(SelfTestEngine, 	StartCentrifugeTest,	StartData)
-	STATE_DECLARE(SelfTestEngine, 	StartPressureTest,		NoEventData)
+    // Define the state machine state functions with event data type
+    STATE_DECLARE(SelfTestEngine, 	StartCentrifugeTest,	StartData)
+    STATE_DECLARE(SelfTestEngine, 	StartPressureTest,		NoEventData)
 
-	// State map to define state object order. Each state map entry defines a
-	// state object.
-	BEGIN_STATE_MAP
-		STATE_MAP_ENTRY(&Idle)
-		STATE_MAP_ENTRY(&Completed)
-		STATE_MAP_ENTRY(&Failed)
-		STATE_MAP_ENTRY(&StartCentrifugeTest)
-		STATE_MAP_ENTRY(&StartPressureTest)
-	END_STATE_MAP	
+    // State map to define state object order. Each state map entry defines a
+    // state object.
+    BEGIN_STATE_MAP
+        STATE_MAP_ENTRY(&Idle)
+        STATE_MAP_ENTRY(&Completed)
+        STATE_MAP_ENTRY(&Failed)
+        STATE_MAP_ENTRY(&StartCentrifugeTest)
+        STATE_MAP_ENTRY(&StartPressureTest)
+    END_STATE_MAP	
 };
 ```
 
@@ -303,17 +303,17 @@ Note that `m_centrifugeTest` and `m_pressureTest` share the same `SelfTestEngine
 
 ```cpp
 SelfTestEngine::SelfTestEngine() :
-	SelfTest("SelfTestEngine",  ST_MAX_STATES)
+    SelfTest("SelfTestEngine",  ST_MAX_STATES)
 {
-	// Set owned state machines to execute on SelfTestEngine thread of control
-	m_centrifugeTest.SetThread(GetThread());
-	m_pressureTest.SetThread(GetThread());
+    // Set owned state machines to execute on SelfTestEngine thread of control
+    m_centrifugeTest.SetThread(GetThread());
+    m_pressureTest.SetThread(GetThread());
 
-	// Register for callbacks when sub self-test state machines complete or fail
-	m_centrifugeTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
-	m_centrifugeTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
-	m_pressureTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
-	m_pressureTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
+    // Register for callbacks when sub self-test state machines complete or fail
+    m_centrifugeTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
+    m_centrifugeTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
+    m_pressureTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
+    m_pressureTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
 }
 ```
 
@@ -322,22 +322,22 @@ The `SelfTest` base class generates the `CompletedCallback` and `FailedCallback`
 ```cpp
 STATE_DEFINE(SelfTest, Completed, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Completed");
+    SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Completed");
 
-	if (CompletedCallback)
-		CompletedCallback();
+    if (CompletedCallback)
+        CompletedCallback();
 
-	InternalEvent(ST_IDLE);
+    InternalEvent(ST_IDLE);
 }
 
 STATE_DEFINE(SelfTest, Failed, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Failed");
+    SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Failed");
 
-	if (FailedCallback)
-		FailedCallback();
+    if (FailedCallback)
+        FailedCallback();
 
-	InternalEvent(ST_IDLE);
+    InternalEvent(ST_IDLE);
 }
 ```
 
@@ -357,28 +357,28 @@ The `Timer` class provides a common mechanism to receive function callbacks by r
 class Timer 
 {
 public:
-	/// Client's register with Expired to get timer callbacks
-	SinglecastDelegate<void(void)> Expired;
+    /// Client's register with Expired to get timer callbacks
+    SinglecastDelegate<void(void)> Expired;
 
-	/// Constructor
-	Timer(void);
+    /// Constructor
+    Timer(void);
 
-	/// Destructor
-	~Timer(void);
+    /// Destructor
+    ~Timer(void);
 
-	/// Starts a timer for callbacks on the specified timeout interval.
-	/// @param[in]	timeout - the timeout in milliseconds.
-	void Start(std::chrono::milliseconds timeout);
+    /// Starts a timer for callbacks on the specified timeout interval.
+    /// @param[in]	timeout - the timeout in milliseconds.
+    void Start(std::chrono::milliseconds timeout);
 
-	/// Stops a timer.
-	void Stop();
+    /// Stops a timer.
+    void Stop();
 
-	/// Gets the enabled state of a timer.
-	/// @return		TRUE if the timer is enabled, FALSE otherwise.
-	bool Enabled() { return m_enabled; }
+    /// Gets the enabled state of a timer.
+    /// @return		TRUE if the timer is enabled, FALSE otherwise.
+    bool Enabled() { return m_enabled; }
 
-	/// Get the current time in ticks. 
-	/// @return The current time in ticks. 
+    /// Get the current time in ticks. 
+    /// @return The current time in ticks. 
     static std::chrono::milliseconds GetTime();
 
     // etc...
@@ -391,53 +391,53 @@ The program’s `main()` function is shown below. It creates the two threads, re
 ```cpp
 int main(void)
 {	
-	try
-	{	
-		// Create the worker thread
-		userInterfaceThread.CreateThread();
+    try
+    {	
+        // Create the worker thread
+        userInterfaceThread.CreateThread();
 
-		// *** Begin async Motor test ***
-		Motor motor;
+        // *** Begin async Motor test ***
+        Motor motor;
 
-		auto data = new MotorData();
-		data->speed = 100;
-		motor.SetSpeed(data);
+        auto data = new MotorData();
+        data->speed = 100;
+        motor.SetSpeed(data);
 
-		data = new MotorData();
-		data->speed = 200;
-		motor.SetSpeed(data);
+        data = new MotorData();
+        data->speed = 200;
+        motor.SetSpeed(data);
 
-		motor.Halt();
-		// *** End async Motor test ***
+        motor.Halt();
+        // *** End async Motor test ***
 
-		// *** Begin async self test ***		
-		// Register for self-test engine callbacks
-		SelfTestEngine::StatusCallback += MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-		SelfTestEngine::GetInstance().CompletedCallback += MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
+        // *** Begin async self test ***		
+        // Register for self-test engine callbacks
+        SelfTestEngine::StatusCallback += MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
+        SelfTestEngine::GetInstance().CompletedCallback += MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
 
-		// Start self-test engine
-		StartData startData;
-		startData.shortSelfTest = TRUE;
-		SelfTestEngine::GetInstance().Start(&startData);
+        // Start self-test engine
+        StartData startData;
+        startData.shortSelfTest = TRUE;
+        SelfTestEngine::GetInstance().Start(&startData);
 
-		// Wait for self-test engine to complete 
-		while (!selfTestEngineCompleted)
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Wait for self-test engine to complete 
+        while (!selfTestEngineCompleted)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-		// Unregister for self-test engine callbacks
-		SelfTestEngine::StatusCallback -= MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-		SelfTestEngine::GetInstance().CompletedCallback -= MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
-		// *** End async self test **
+        // Unregister for self-test engine callbacks
+        SelfTestEngine::StatusCallback -= MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
+        SelfTestEngine::GetInstance().CompletedCallback -= MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
+        // *** End async self test **
 
-		// Exit the worker thread
-		userInterfaceThread.ExitThread();
-	}
-	catch (...)
-	{
-		std::cerr << "Exception!" << std::endl;
-	}
+        // Exit the worker thread
+        userInterfaceThread.ExitThread();
+    }
+    catch (...)
+    {
+        std::cerr << "Exception!" << std::endl;
+    }
 
-	return 0;
+    return 0;
 }
 ```
 
@@ -446,13 +446,13 @@ int main(void)
 ```cpp
 void SelfTestEngineStatusCallback(const SelfTestStatus& status)
 {
-	// Output status message to the console "user interface"
-	cout << status.message.c_str() << endl;
+    // Output status message to the console "user interface"
+    cout << status.message.c_str() << endl;
 }
 
 void SelfTestEngineCompleteCallback()
 {
-	selfTestEngineCompleted = TRUE;
+    selfTestEngineCompleted = TRUE;
 }
 ```
 
