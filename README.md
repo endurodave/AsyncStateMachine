@@ -12,9 +12,7 @@ An asynchronous C++ state machine implemented using an asynchronous delegate lib
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
   - [References](#references)
-- [CMake Build](#cmake-build)
-  - [Windows Visual Studio](#windows-visual-studio)
-  - [Linux Make](#linux-make)
+- [Getting Started](#getting-started)
 - [Asynchronous Delegates](#asynchronous-delegates)
 - [AsyncStateMachine](#asyncstatemachine)
 - [Motor Example](#motor-example)
@@ -37,8 +35,6 @@ The goal for the article is to provide a complete working project with threads, 
 
 The state machine and delegate implementations will not be reexplained here. This article focuses on the `AsyncStateMachine` enhancement and integration with the `DelegateMQ` library.
 
-CMake is used to create the build files. CMake is free and open-source software. Windows, Linux and other toolchains are supported. See the `CMakeLists.txt` file for more information.
-
 ## References
 
 * [State Machine Design in C++](https://github.com/endurodave/StateMachine) - A compact C++ finite state machine (FSM) implementation.
@@ -47,16 +43,13 @@ CMake is used to create the build files. CMake is free and open-source software.
 
 * [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread) - A worker thread using the C++ thread support library.
 
-# CMake Build
-[CMake](https://cmake.org/) is used to create the project build files. See `CMakeLists.txt` for more information.
+# Getting Started
+[CMake](https://cmake.org/) is used to create the project build files on any Windows or Linux machine.
 
-## Windows Visual Studio
-
-`cmake -G "Visual Studio 17 2022" -A Win32 -B Build -S .`
-
-## Linux Make 
-
-`cmake -G "Unix Makefiles" -B Build -S .`
+1. Clone the repository.
+2. From the repository root, run the following CMake command:   
+   `cmake -B Build .`
+3. Build and run the project within the `Build` directory. 
 
 # Asynchronous Delegates
 
