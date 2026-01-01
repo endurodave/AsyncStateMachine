@@ -60,7 +60,7 @@ STATE_DEFINE(CentrifugeTest, Idle, NoEventData)
 	SelfTest::ST_Idle(data);	
 
 	// Unregister for timer callbacks 
-	m_pollTimer.Expired = 0;
+	(*m_pollTimer.Expired) -= MakeDelegate(this, &CentrifugeTest::Poll, *SelfTestEngine::GetInstance().GetThread());
 	m_pollTimer.Stop();
 }
 
@@ -72,7 +72,7 @@ STATE_DEFINE(CentrifugeTest, StartTest, StartData)
 	SelfTestEngine::InvokeStatusCallback("CentrifugeTest::ST_StartTest");
 
 	// Register for timer callbacks 
-	m_pollTimer.Expired = MakeDelegate(this, &CentrifugeTest::Poll, *SelfTestEngine::GetInstance().GetThread());
+	(*m_pollTimer.Expired) += MakeDelegate(this, &CentrifugeTest::Poll, *SelfTestEngine::GetInstance().GetThread());
 
 	InternalEvent(ST_ACCELERATION);
 }
