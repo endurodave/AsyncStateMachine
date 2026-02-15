@@ -151,7 +151,7 @@ void Timer::CheckExpired()
         }
     }
 
-    // Call the client's expired callback function
+    // Call the clients expired callback function
     if (OnExpired) {
         (*OnExpired)();
     }

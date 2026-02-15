@@ -6,7 +6,19 @@
 class MotorData : public EventData
 {
 public:
-	INT speed;
+    MotorData() : speed(0) {}
+
+    // NOTE: DelegateMQ uses this constructor to perform a "deep copy" of the data 
+    // onto the heap. This ensures that even if the original MotorData was created 
+    // on the caller's stack, a safe, persistent clone is transported to the 
+    // destination thread, preventing "dead pointer" risks.
+    MotorData(const MotorData& other) {
+        this->speed = other.speed;
+        std::cout << "DEEP COPY: MotorData cloned for transport. Speed: "
+            << this->speed << std::endl;
+    }
+
+    INT speed;
 };
 
 // Motor is an asynchronous state machine. All external events are executed
@@ -15,40 +27,40 @@ public:
 class Motor : public AsyncStateMachine
 {
 public:
-	Motor();
+    Motor();
 
-	// External events taken by this state machine
-	void SetSpeed(MotorData* data);
-	void Halt();
+    // External events taken by this state machine
+    void SetSpeed(MotorData* data);
+    void Halt();
 
 private:
-	INT m_currentSpeed; 
+    INT m_currentSpeed; 
 
-	// State enumeration order must match the order of state method entries
-	// in the state map.
-	enum States
-	{
-		ST_IDLE,
-		ST_STOP,
-		ST_START,
-		ST_CHANGE_SPEED,
-		ST_MAX_STATES
-	};
+    // State enumeration order must match the order of state method entries
+    // in the state map.
+    enum States
+    {
+        ST_IDLE,
+        ST_STOP,
+        ST_START,
+        ST_CHANGE_SPEED,
+        ST_MAX_STATES
+    };
 
-	// Define the state machine state functions with event data type
-	STATE_DECLARE(Motor, 	Idle,			NoEventData)
-	STATE_DECLARE(Motor, 	Stop,			NoEventData)
-	STATE_DECLARE(Motor, 	Start,			MotorData)
-	STATE_DECLARE(Motor, 	ChangeSpeed,	MotorData)
+    // Define the state machine state functions with event data type
+    STATE_DECLARE(Motor, 	Idle,			NoEventData)
+    STATE_DECLARE(Motor, 	Stop,			NoEventData)
+    STATE_DECLARE(Motor, 	Start,			MotorData)
+    STATE_DECLARE(Motor, 	ChangeSpeed,	MotorData)
 
-	// State map to define state object order. Each state map entry defines a
-	// state object.
-	BEGIN_STATE_MAP
-		STATE_MAP_ENTRY(&Idle)
-		STATE_MAP_ENTRY(&Stop)
-		STATE_MAP_ENTRY(&Start)
-		STATE_MAP_ENTRY(&ChangeSpeed)
-	END_STATE_MAP	
+    // State map to define state object order. Each state map entry defines a
+    // state object.
+    BEGIN_STATE_MAP
+        STATE_MAP_ENTRY(&Idle)
+        STATE_MAP_ENTRY(&Stop)
+        STATE_MAP_ENTRY(&Start)
+        STATE_MAP_ENTRY(&ChangeSpeed)
+    END_STATE_MAP	
 };
 
 #endif

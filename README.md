@@ -5,7 +5,7 @@
 
 # Asynchronous State Machine Design in C++
 
-An asynchronous C++ state machine implemented using an asynchronous delegate library.
+A thread-safe C++ Finite State Machine implemented as an Active Object, utilizing an asynchronous Signal-Slot library for decoupled, cross-thread event dispatching.
 
 # Table of Contents
 - [Asynchronous State Machine Design in C++](#asynchronous-state-machine-design-in-c)
@@ -14,6 +14,7 @@ An asynchronous C++ state machine implemented using an asynchronous delegate lib
   - [References](#references)
 - [Getting Started](#getting-started)
 - [Asynchronous Delegates](#asynchronous-delegates)
+  - [Memory Safety and Deep Copy](#memory-safety-and-deep-copy)
 - [AsyncStateMachine](#asyncstatemachine)
 - [Motor Example](#motor-example)
 - [Self-Test Subsystem Example](#self-test-subsystem-example)
@@ -25,23 +26,23 @@ An asynchronous C++ state machine implemented using an asynchronous delegate lib
 
 # Introduction
 
-A software-based Finite State Machines (FSM) is an implementation method used to decompose a design into states and events. Simple embedded devices with no operating system employ single threading such that the state machines run on a single “thread”. More complex systems use multithreading to divvy up the processing.
+A software-based Finite State Machine (FSM) is an implementation method used to decompose a design into discrete states and events. Simple embedded devices with no operating system employ single-threading where state machines execute on a single execution loop. More complex systems utilize multithreading to partition processing across multiple cores or priority levels.
 
-This repository covers how to use a C++ state machines within the context of a multithreaded environment. A new `AsyncStateMachine` class extends the functionality of `StateMachine` documented in [State Machine Design in C++](https://github.com/endurodave/StateMachine). The asynchronous state machine utilizes a C++ `std::thread` for thread support as covered within [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread). Any OS thread is easy adapted. The `std::thread` was convenient for cross-platform Windows and Linux usage.
+This repository demonstrates how to implement C++ state machines within a multithreaded environment. The `AsyncStateMachine` class extends the functionality of the core engine documented in [State Machine Design in C++](https://github.com/endurodave/StateMachine). This asynchronous implementation utilizes `std::thread` for cross-platform support on Windows and Linux, as covered in [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread), though it can be easily adapted to any OS-specific threading model.
 
-The `AsyncStateMachine` leverages the asynchronous delegate library documented in [DelegateMQ](https://github.com/endurodave/DelegateMQ). In short, the library is capable of targeting any callable function synchronously or asynchronously.
+To handle inter-thread communication, `AsyncStateMachine` leverages the [DelegateMQ](https://github.com/endurodave/DelegateMQ) asynchronous Signal-Slot library. This allows the state machine to function as an **Active Object**, where events and transitions are safely marshaled to a dedicated thread of control, ensuring thread-safety without manual mutex locking.
 
-The goal for the article is to provide a complete working project with threads, timers, events, and state machines all working together. To illustrate the concept, the example project implements a state-based self-test engine utilizing asynchronous communication between state machines.
+The goal of this project is to provide a complete, production-ready example featuring threads, timers, and state machines working in concert. The included example implements a hierarchical self-test engine that utilizes asynchronous Signal-Slot communication to coordinate multiple sub-test state machines.
 
-The state machine and delegate implementations will not be reexplained here. This article focuses on the `AsyncStateMachine` enhancement and integration with the `DelegateMQ` library.
+This article focuses specifically on the `AsyncStateMachine` enhancement and its integration with the `DelegateMQ` library; the underlying state machine and delegate implementations are documented in their respective repositories.
 
 ## References
 
-* [State Machine Design in C++](https://github.com/endurodave/StateMachine) - A compact C++ finite state machine (FSM) implementation.
-
-* [DelegateMQ in C++](https://github.com/endurodave/DelegateMQ) - A C++ delegate library capable of targeting any callable function synchronously or asynchronously.
-
-* [C++ std::thread Event Loop](https://github.com/endurodave/StdWorkerThread) - A worker thread using the C++ thread support library.
+| Project | Description |
+| :--- | :--- |
+| [**State Machine Design in C++**](https://github.com/endurodave/StateMachine) | A compact, header-only C++ finite state machine implementation supporting internal/external events and state inheritance. |
+| [**DelegateMQ in C++**](https://github.com/endurodave/DelegateMQ) | A modern messaging library providing a thread-safe Signal-Slot mechanism for synchronous and asynchronous function invocation. |
+| [**C++ std::thread Event Loop**](https://github.com/endurodave/StdWorkerThread) | A lightweight, thread-safe event loop and worker thread implementation using the standard C++ thread support library. |
 
 # Getting Started
 [CMake](https://cmake.org/) is used to create the project build files on any Windows or Linux machine.
@@ -55,13 +56,25 @@ The state machine and delegate implementations will not be reexplained here. Thi
 
 If you’re not familiar with a delegate, the concept is quite simple. A delegate can be thought of as a super function pointer. In C++, there's no pointer type capable of pointing to all the possible function variations: instance member, virtual, const, static, lambda, and free (global). A function pointer can’t point to instance member functions, and pointers to member functions have all sorts of limitations. However, delegate classes can, in a type-safe way, point to any function provided the function signature matches. In short, a delegate points to any function with a matching signature to support anonymous function invocation.
 
-Asynchronous delegates take the concept further and permits anonymous invocation of any function on a client specified thread of control. The function and all arguments are safely called from a destination thread simplifying inter-thread communication and eliminating cross-threading errors. The repository [DelegateMQ](https://github.com/endurodave/DelegateMQ) covers usage patterns in detail.
+Asynchronous delegates take the concept further and permit anonymous invocation of any function on a client specified thread of control. The function and all arguments are safely called from a destination thread simplifying inter-thread communication and eliminating cross-threading errors. The repository [DelegateMQ](https://github.com/endurodave/DelegateMQ) covers usage patterns in detail.
 
 The `AsyncStateMachine` uses asynchronous delegates to inject external events into a state machine instance.
 
+## Memory Safety and Deep Copy
+
+A critical challenge in asynchronous multi-threading is managing the lifetime of data passed between threads. If a caller passes a pointer to a local (stack) variable to another thread, the caller's stack may be cleaned up before the destination thread has a chance to process the data, leading to "dead pointer" crashes.
+
+`AsyncStateMachine` leverages DelegateMQ's automated heap-marshaling to solve this. When an external event is fired using a pointer to an object, the library automatically performs a Deep Copy of the underlying data onto the heap.
+
+1. **Safety:** The destination thread receives its own private, persistent clone of the data.
+
+2. **Automation:** The library manages the life cycle, deleting the cloned object automatically after the state transition is complete.
+ 
+3. **Requirement:** For this to work, the event data class (e.g., MotorData) must have a valid copy constructor.
+
 # AsyncStateMachine
 
-The `AsyncStateMachine` inherits from `StateMachine`. Create an state machine thread using `CreateThread()` or alternatively attach an existing thread using `SetThread()`. 
+The `AsyncStateMachine` inherits from `StateMachine`. Create a state machine thread using `CreateThread()` or alternatively attach an existing thread using `SetThread()`. 
 
 ```cpp
 class AsyncStateMachine : public StateMachine
@@ -238,55 +251,55 @@ When each self-test completes, the `Complete` event fires causing the next self-
 
 The `SelfTest` base class provides three states common to all `SelfTest`-derived state machines: `Idle`, `Completed`, and `Failed`. `SelfTestEngine` then adds two more states: `StartCentrifugeTest` and `StartPressureTest`.
 
-`SelfTestEngine` has one public event function, `Start()`, that starts the self-tests. `SelfTestEngine::StatusCallback` is an asynchronous callback allowing client’s to register for status updates during testing.
+`SelfTestEngine` has one public event function, `Start()`, that starts the self-tests. `SelfTestEngine::OnStatus` is an asynchronous callback allowing client’s to register for status updates during testing.
 
 ```cpp
 class SelfTestEngine : public SelfTest
 {
 public:
-    // Clients register for asynchronous self-test status callbacks
-    static MulticastDelegateSafe<void(const SelfTestStatus&)> StatusCallback;
+	// Clients register for asynchronous self-test status callbacks via Signal-Slot
+	static inline dmq::SignalPtr<void(const SelfTestStatus&)> OnStatus =
+		dmq::MakeSignal<void(const SelfTestStatus&)>();
 
-    // Singleton instance of SelfTestEngine
-    static SelfTestEngine& GetInstance();
+	static SelfTestEngine& GetInstance();
 
-    // Start the self-tests. This is a thread-safe asycnhronous function. 
-    void Start(const StartData* data);
+	void Start(const StartData* data);
 
-    static void InvokeStatusCallback(std::string msg);
+	static void InvokeStatusSignal(std::string msg);
 
 private:
-    SelfTestEngine();
-    void Complete();
+	SelfTestEngine();
+	void Complete();
 
-    // Sub self-test state machines 
-    CentrifugeTest m_centrifugeTest;
-    PressureTest m_pressureTest;
+	CentrifugeTest m_centrifugeTest;
+	PressureTest m_pressureTest;
 
-    StartData m_startData;
+	StartData m_startData;
 
-    // State enumeration order must match the order of state method entries
-    // in the state map.
-    enum States
-    {
-        ST_START_CENTRIFUGE_TEST = SelfTest::ST_MAX_STATES,
-        ST_START_PRESSURE_TEST,
-        ST_MAX_STATES
-    };
+	// RAII Connection Handles
+	// These MUST be stored to keep the signal connections alive
+	dmq::ScopedConnection m_centrifugeCompleteConn;
+	dmq::ScopedConnection m_centrifugeFailedConn;
+	dmq::ScopedConnection m_pressureCompleteConn;
+	dmq::ScopedConnection m_pressureFailedConn;
 
-    // Define the state machine state functions with event data type
-    STATE_DECLARE(SelfTestEngine, 	StartCentrifugeTest,	StartData)
-    STATE_DECLARE(SelfTestEngine, 	StartPressureTest,		NoEventData)
+	enum States
+	{
+		ST_START_CENTRIFUGE_TEST = SelfTest::ST_MAX_STATES,
+		ST_START_PRESSURE_TEST,
+		ST_MAX_STATES
+	};
 
-    // State map to define state object order. Each state map entry defines a
-    // state object.
-    BEGIN_STATE_MAP
-        STATE_MAP_ENTRY(&Idle)
-        STATE_MAP_ENTRY(&Completed)
-        STATE_MAP_ENTRY(&Failed)
-        STATE_MAP_ENTRY(&StartCentrifugeTest)
-        STATE_MAP_ENTRY(&StartPressureTest)
-    END_STATE_MAP	
+	STATE_DECLARE(SelfTestEngine, StartCentrifugeTest, StartData)
+	STATE_DECLARE(SelfTestEngine, StartPressureTest, NoEventData)
+
+	BEGIN_STATE_MAP
+		STATE_MAP_ENTRY(&Idle)
+		STATE_MAP_ENTRY(&Completed)
+		STATE_MAP_ENTRY(&Failed)
+		STATE_MAP_ENTRY(&StartCentrifugeTest)
+		STATE_MAP_ENTRY(&StartPressureTest)
+	END_STATE_MAP
 };
 ```
 
@@ -296,45 +309,56 @@ Note that `m_centrifugeTest` and `m_pressureTest` share the same `SelfTestEngine
 
 ```cpp
 SelfTestEngine::SelfTestEngine() :
-    SelfTest("SelfTestEngine",  ST_MAX_STATES)
+    SelfTest("SelfTestEngine", ST_MAX_STATES)
 {
     // Set owned state machines to execute on SelfTestEngine thread of control
     m_centrifugeTest.SetThread(GetThread());
     m_pressureTest.SetThread(GetThread());
 
-    // Register for callbacks when sub self-test state machines complete or fail
-    m_centrifugeTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
-    m_centrifugeTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
-    m_pressureTest.CompletedCallback += MakeDelegate(this, &SelfTestEngine::Complete);
-    m_pressureTest.FailedCallback += MakeDelegate<SelfTest>(this, &SelfTest::Cancel);
+    // CONNECT SIGNALS (RAII)
+    // Register for signals when sub self-test state machines complete or fail.
+    // We store the connection handles to ensure they stay connected.
+    m_centrifugeCompleteConn = m_centrifugeTest.OnCompleted->Connect(
+        MakeDelegate(this, &SelfTestEngine::Complete));
+
+    m_centrifugeFailedConn = m_centrifugeTest.OnFailed->Connect(
+        MakeDelegate<SelfTest>(this, &SelfTest::Cancel));
+
+    m_pressureCompleteConn = m_pressureTest.OnCompleted->Connect(
+        MakeDelegate(this, &SelfTestEngine::Complete));
+
+    m_pressureFailedConn = m_pressureTest.OnFailed->Connect(
+        MakeDelegate<SelfTest>(this, &SelfTest::Cancel));
 }
 ```
 
-The `SelfTest` base class generates the `CompletedCallback` and `FailedCallback` within the `Completed` and `Failed` states respectively as seen below:
+The `SelfTest` base class generates the `OnCompleted` and `OnFailed` within the `Completed` and `Failed` states respectively as seen below:
 
 ```cpp
 STATE_DEFINE(SelfTest, Completed, NoEventData)
 {
-    SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Completed");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Completed");
 
-    if (CompletedCallback)
-        CompletedCallback();
+    // Use SignalPtr and dereference to invoke connected slots
+    if (OnCompleted)
+        (*OnCompleted)();
 
     InternalEvent(ST_IDLE);
 }
 
 STATE_DEFINE(SelfTest, Failed, NoEventData)
 {
-    SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Failed");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Failed");
 
-    if (FailedCallback)
-        FailedCallback();
+    // Use SignalPtr and dereference to invoke connected slots
+    if (OnFailed)
+        (*OnFailed)();
 
     InternalEvent(ST_IDLE);
 }
 ```
 
-One might ask why the state machines use asynchronous delegate callbacks. If the state machines are on the same thread, why not use a normal, synchronous callback instead? The problem to prevent is a callback into a currently executing state machine, that is, the call stack wrapping back around into the same class instance. For example, the following call sequence should be prevented: `SelfTestEngine` calls `CentrifugeTest` calls back `SelfTestEngine`. An asynchronous callback allows the stack to unwind and prevents this unwanted behavior.
+One might ask why the state machines use asynchronous delegate signals. If the state machines are on the same thread, why not use a normal, synchronous callback instead? The problem to prevent is a callback into a currently executing state machine, that is, the call stack wrapping back around into the same class instance. For example, the following call sequence should be prevented: `SelfTestEngine` calls `CentrifugeTest` calls back `SelfTestEngine`. An asynchronous callback allows the stack to unwind and prevents this unwanted behavior.
 
 ## CentrifugeTest
 
@@ -344,14 +368,14 @@ The `CentrifugeTest` state machine diagram shown below implements the centrifuge
 
 ## Timer
 
-The `Timer` class provides a common mechanism to receive function callbacks by registering with `Expired`. `Start()` starts the callbacks at a particular interval. `Stop()` stops the callbacks.
+The `Timer` class provides a common mechanism to receive function callbacks by registering with `OnExpired`. `Start()` starts the callbacks at a particular interval. `Stop()` stops the callbacks.
 
 ```cpp
-class Timer 
+class Timer
 {
 public:
-    /// Client's register with Expired to get timer callbacks
-    SinglecastDelegate<void(void)> Expired;
+    /// Clients register with OnExpired to get timer callbacks
+    dmq::SignalPtr<void(void)> OnExpired;
 
     /// Constructor
     Timer(void);
@@ -360,19 +384,12 @@ public:
     ~Timer(void);
 
     /// Starts a timer for callbacks on the specified timeout interval.
-    /// @param[in]	timeout - the timeout in milliseconds.
-    void Start(std::chrono::milliseconds timeout);
+    /// @param[in] timeout - the timeout.
+    /// @param[in] once - true if only one timer expiration
+    void Start(dmq::Duration timeout, bool once = false);
 
     /// Stops a timer.
     void Stop();
-
-    /// Gets the enabled state of a timer.
-    /// @return		TRUE if the timer is enabled, FALSE otherwise.
-    bool Enabled() { return m_enabled; }
-
-    /// Get the current time in ticks. 
-    /// @return The current time in ticks. 
-    static std::chrono::milliseconds GetTime();
 
     // etc...
 ```
@@ -383,69 +400,94 @@ The program’s `main()` function is shown below. It creates the two threads, re
 
 ```cpp
 int main(void)
-{	
-    try
-    {	
-        // Create the worker thread
-        userInterfaceThread.CreateThread();
+{
+	// Start the thread that will run ProcessTimers
+	std::thread timerThread(ProcessTimers);
 
-        // *** Begin async Motor test ***
-        Motor motor;
+	try
+	{
+		// Create the worker thread
+		userInterfaceThread.CreateThread();
 
-        auto data = new MotorData();
-        data->speed = 100;
-        motor.SetSpeed(data);
+		// *** Begin async Motor test ***
+		Motor motor;
 
-        data = new MotorData();
-        data->speed = 200;
-        motor.SetSpeed(data);
+		auto data = new MotorData();
+		data->speed = 100;
+		motor.SetSpeed(data);
 
-        motor.Halt();
-        // *** End async Motor test ***
+		data = new MotorData();
+		data->speed = 200;
+		motor.SetSpeed(data);
 
-        // *** Begin async self test ***		
-        // Register for self-test engine callbacks
-        SelfTestEngine::StatusCallback += MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-        SelfTestEngine::GetInstance().CompletedCallback += MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
+		motor.Halt();
+		// *** End async Motor test ***
 
-        // Start self-test engine
-        StartData startData;
-        startData.shortSelfTest = TRUE;
-        SelfTestEngine::GetInstance().Start(&startData);
+		// *** Begin async self test ***		
+		// -------------------------------------------------------------------------
+		// CONNECT SIGNALS (RAII)
+		// -------------------------------------------------------------------------
+		// We must store the connection handles!
+		// If these fall out of scope, they automatically disconnect.
+		ScopedConnection statusConn;
+		ScopedConnection completeConn;
 
-        // Wait for self-test engine to complete 
-        while (!selfTestEngineCompleted)
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		// Register for status updates (Static Signal)
+		statusConn = SelfTestEngine::OnStatus->Connect(
+			MakeDelegate(&OnSelfTestEngineStatus, userInterfaceThread)
+		);
 
-        // Unregister for self-test engine callbacks
-        SelfTestEngine::StatusCallback -= MakeDelegate(&SelfTestEngineStatusCallback, userInterfaceThread);
-        SelfTestEngine::GetInstance().CompletedCallback -= MakeDelegate(&SelfTestEngineCompleteCallback, userInterfaceThread);
-        // *** End async self test **
+		// Register for completion (Instance Signal from base class)
+		completeConn = SelfTestEngine::GetInstance().OnCompleted->Connect(
+			MakeDelegate(&OnSelfTestEngineComplete, userInterfaceThread)
+		);
 
-        // Exit the worker thread
-        userInterfaceThread.ExitThread();
-    }
-    catch (...)
-    {
-        std::cerr << "Exception!" << std::endl;
-    }
+		// Start self-test engine
+		StartData startData;
+		startData.shortSelfTest = TRUE;
+		SelfTestEngine::GetInstance().Start(&startData);
 
-    return 0;
+		// Wait for self-test engine to complete 
+		while (!selfTestEngineCompleted)
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+		// -------------------------------------------------------------------------
+		// DISCONNECT
+		// -------------------------------------------------------------------------
+		// Explicitly disconnect (optional, as destructors handle this automatically)
+		statusConn.Disconnect();
+		completeConn.Disconnect();
+		// *** End async self test **
+
+		// Exit the worker thread
+		userInterfaceThread.ExitThread();
+	}
+	catch (...)
+	{
+		std::cerr << "Exception!" << std::endl;
+	}
+
+	// Ensure the timer thread completes before main exits
+	processTimerExit.store(true);
+	if (timerThread.joinable())
+		timerThread.join();
+
+	return 0;
 }
 ```
 
 `SelfTestEngine` generates asynchronous callbacks on the `UserInteface` thread. The `SelfTestEngineStatusCallback()` callback outputs the message to the console.
 
 ```cpp
-void SelfTestEngineStatusCallback(const SelfTestStatus& status)
+void OnSelfTestEngineStatus(const SelfTestStatus& status)
 {
-    // Output status message to the console "user interface"
-    cout << status.message.c_str() << endl;
+	// Output status message to the console "user interface"
+	cout << status.message.c_str() << endl;
 }
 
-void SelfTestEngineCompleteCallback()
+void OnSelfTestEngineComplete()
 {
-    selfTestEngineCompleted = TRUE;
+	selfTestEngineCompleted = true;
 }
 ```
 

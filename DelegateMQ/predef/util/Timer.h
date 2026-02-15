@@ -27,7 +27,7 @@
 class Timer
 {
 public:
-    /// Client's register with OnExpired to get timer callbacks
+    /// Clients register with OnExpired to get timer callbacks
     dmq::SignalPtr<void(void)> OnExpired;
 
     /// Constructor

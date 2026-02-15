@@ -5,16 +5,16 @@
 // SelfTest
 //------------------------------------------------------------------------------
 SelfTest::SelfTest(const std::string& name, INT maxStates) :
-	AsyncStateMachine(maxStates)
+    AsyncStateMachine(maxStates)
 {
-	CreateThread(name);
+    CreateThread(name);
 }
 
 //------------------------------------------------------------------------------
 // SelfTest
 //------------------------------------------------------------------------------
 SelfTest::SelfTest(INT maxStates) :
-	AsyncStateMachine(maxStates)
+    AsyncStateMachine(maxStates)
 {
 }
 
@@ -23,14 +23,11 @@ SelfTest::SelfTest(INT maxStates) :
 //------------------------------------------------------------------------------
 void SelfTest::Cancel()
 {
-	ASYNC_INVOKE(SelfTest, Cancel);
+    // ASYNC_INVOKE ensures the transition logic runs on this machine's thread
+    ASYNC_INVOKE(SelfTest, Cancel);
 
-	// State machine base classes can't use a transition map, only the 
-	// most-derived state machine class within the hierarchy can. So external 
-	// events like this use the current state and call ExternalEvent()
-	// to invoke the state machine transition. 
-	if (GetCurrentState() != ST_IDLE)
-		ExternalEvent(ST_FAILED);
+    if (GetCurrentState() != ST_IDLE)
+        ExternalEvent(ST_FAILED);
 }
 
 //------------------------------------------------------------------------------
@@ -38,7 +35,7 @@ void SelfTest::Cancel()
 //------------------------------------------------------------------------------
 STATE_DEFINE(SelfTest, Idle, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Idle");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Idle");
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +43,7 @@ STATE_DEFINE(SelfTest, Idle, NoEventData)
 //------------------------------------------------------------------------------
 ENTRY_DEFINE(SelfTest, EntryIdle, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::EN_EntryIdle");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::EN_EntryIdle");
 }
 
 //------------------------------------------------------------------------------
@@ -54,12 +51,13 @@ ENTRY_DEFINE(SelfTest, EntryIdle, NoEventData)
 //------------------------------------------------------------------------------
 STATE_DEFINE(SelfTest, Completed, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Completed");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Completed");
 
-	if (CompletedCallback)
-		CompletedCallback();
+    // Use SignalPtr and dereference to invoke connected slots
+    if (OnCompleted)
+        (*OnCompleted)();
 
-	InternalEvent(ST_IDLE);
+    InternalEvent(ST_IDLE);
 }
 
 //------------------------------------------------------------------------------
@@ -67,11 +65,11 @@ STATE_DEFINE(SelfTest, Completed, NoEventData)
 //------------------------------------------------------------------------------
 STATE_DEFINE(SelfTest, Failed, NoEventData)
 {
-	SelfTestEngine::InvokeStatusCallback("SelfTest::ST_Failed");
+    SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Failed");
 
-	if (FailedCallback)
-		FailedCallback();
+    // Use SignalPtr and dereference to invoke connected slots
+    if (OnFailed)
+        (*OnFailed)();
 
-	InternalEvent(ST_IDLE);
+    InternalEvent(ST_IDLE);
 }
-
