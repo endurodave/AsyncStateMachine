@@ -17,8 +17,8 @@ class SelfTest : public AsyncStateMachine
 public:
     // Signals generated when the self-test completes or fails.
     // Initialized with SignalPtr for thread-safe RAII connection management.
-    dmq::SignalPtr<void(void)> OnCompleted = dmq::MakeSignal<void(void)>();
-    dmq::SignalPtr<void(void)> OnFailed = dmq::MakeSignal<void(void)>();
+    dmq::Signal<void(void)> OnCompleted;
+    dmq::Signal<void(void)> OnFailed;
 
     SelfTest(const std::string& threadName, INT maxStates);
     SelfTest(INT maxStates);

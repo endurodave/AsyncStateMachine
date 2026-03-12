@@ -73,7 +73,7 @@ STATE_DEFINE(CentrifugeTest, StartTest, StartData)
 
     // Connect to the timer signal using the ScopedConnection handle.
     // Ensure the Poll() callback is marshaled to this state machine's thread.
-    m_pollTimerConn = m_pollTimer.OnExpired->Connect(
+    m_pollTimerConn = m_pollTimer.OnExpired.Connect(
         MakeDelegate(this, &CentrifugeTest::Poll, *GetThread()));
 
     InternalEvent(ST_ACCELERATION);

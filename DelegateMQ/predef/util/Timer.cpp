@@ -23,7 +23,6 @@ Timer::Timer()
 {
     const std::lock_guard<RecursiveMutex> lock(GetLock());
     m_enabled = false;
-    OnExpired = dmq::MakeSignal<void(void)>();
 }
 
 //------------------------------------------------------------------------------
@@ -151,9 +150,9 @@ void Timer::CheckExpired()
         }
     }
 
-    // Call the clients expired callback function
-    if (OnExpired) {
-        (*OnExpired)();
+    // Call the client's expired callback function
+    if (!OnExpired.Empty()) {
+        OnExpired();
     }
 }
 

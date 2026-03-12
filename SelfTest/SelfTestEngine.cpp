@@ -22,16 +22,16 @@ SelfTestEngine::SelfTestEngine() :
     // CONNECT SIGNALS (RAII)
     // Register for signals when sub self-test state machines complete or fail.
     // We store the connection handles to ensure they stay connected.
-    m_centrifugeCompleteConn = m_centrifugeTest.OnCompleted->Connect(
+    m_centrifugeCompleteConn = m_centrifugeTest.OnCompleted.Connect(
         MakeDelegate(this, &SelfTestEngine::Complete));
 
-    m_centrifugeFailedConn = m_centrifugeTest.OnFailed->Connect(
+    m_centrifugeFailedConn = m_centrifugeTest.OnFailed.Connect(
         MakeDelegate<SelfTest>(this, &SelfTest::Cancel));
 
-    m_pressureCompleteConn = m_pressureTest.OnCompleted->Connect(
+    m_pressureCompleteConn = m_pressureTest.OnCompleted.Connect(
         MakeDelegate(this, &SelfTestEngine::Complete));
 
-    m_pressureFailedConn = m_pressureTest.OnFailed->Connect(
+    m_pressureFailedConn = m_pressureTest.OnFailed.Connect(
         MakeDelegate<SelfTest>(this, &SelfTest::Cancel));
 }
 
@@ -40,13 +40,9 @@ SelfTestEngine::SelfTestEngine() :
 //------------------------------------------------------------------------------
 void SelfTestEngine::InvokeStatusSignal(std::string msg)
 {
-    // Client(s) registered? Dereference SignalPtr to invoke.
-    if (OnStatus)
-    {
-        SelfTestStatus status;
-        status.message = msg;
-        (*OnStatus)(status);
-    }
+    SelfTestStatus status;
+    status.message = msg;
+    OnStatus(status);
 }
 
 //------------------------------------------------------------------------------

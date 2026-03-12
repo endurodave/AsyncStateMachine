@@ -53,9 +53,7 @@ STATE_DEFINE(SelfTest, Completed, NoEventData)
 {
     SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Completed");
 
-    // Use SignalPtr and dereference to invoke connected slots
-    if (OnCompleted)
-        (*OnCompleted)();
+    OnCompleted();
 
     InternalEvent(ST_IDLE);
 }
@@ -67,9 +65,7 @@ STATE_DEFINE(SelfTest, Failed, NoEventData)
 {
     SelfTestEngine::InvokeStatusSignal("SelfTest::ST_Failed");
 
-    // Use SignalPtr and dereference to invoke connected slots
-    if (OnFailed)
-        (*OnFailed)();
+    OnFailed();
 
     InternalEvent(ST_IDLE);
 }
