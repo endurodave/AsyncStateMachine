@@ -7,6 +7,8 @@
 
 A thread-safe C++ Finite State Machine implemented as an Active Object, utilizing an asynchronous Signal-Slot library for decoupled, cross-thread event dispatching.
 
+  ⚠️ See [**Async FSM**](https://github.com/endurodave/async-fsm) for an updated, modern async C++ finite state machine providing RAII-safe asynchronous dispatch and pub/sub signals.
+
 # Table of Contents
 - [Asynchronous State Machine Design in C++](#asynchronous-state-machine-design-in-c)
 - [Table of Contents](#table-of-contents)
