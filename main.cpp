@@ -47,7 +47,7 @@ using namespace std;
 using namespace dmq;
 
 // A thread to capture self-test status callbacks for output to the "user interface"
-Thread userInterfaceThread("UserInterface");
+dmq::os::Thread userInterfaceThread("UserInterface");
 
 // Simple flag to exit main loop (Atomic for thread safety)
 std::atomic<bool> selfTestEngineCompleted(false);
@@ -58,7 +58,7 @@ static void ProcessTimers()
 	while (!processTimerExit.load())
 	{
 		// Process all delegate-based timers
-		Timer::ProcessTimers();
+		dmq::util::Timer::ProcessTimers();
 		std::this_thread::sleep_for(std::chrono::microseconds(50));
 	}
 }

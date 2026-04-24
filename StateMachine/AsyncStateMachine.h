@@ -40,7 +40,7 @@ void AsyncInvoke(C obj, F func, T& thread, Args&&... args)
     { \
         if (!GetThread()) \
             throw std::runtime_error("Thread is not initialized (nullptr)."); \
-        if (GetThread()->GetThreadId() != Thread::GetCurrentThreadId()) { \
+        if (GetThread()->GetThreadId() != dmq::os::Thread::GetCurrentThreadId()) { \
             AsyncInvoke(this, &stateMachine::stateName, *GetThread(), ##__VA_ARGS__); \
             return; \
         } \
@@ -71,11 +71,11 @@ public:
 
     /// Set a thread for this state machine
     /// @param[in] thread - a Thread instance
-    void SetThread(std::shared_ptr<Thread> thread) { m_thread = thread;  }
+    void SetThread(std::shared_ptr<dmq::os::Thread> thread) { m_thread = thread;  }
 
     /// Get the thread attached to this state machine
     /// @return A Thread instance
-    std::shared_ptr<Thread> GetThread() { return m_thread; }
+    std::shared_ptr<dmq::os::Thread> GetThread() { return m_thread; }
 
 protected:
     /// @see StateMachine::ExternalEvent()
@@ -83,7 +83,7 @@ protected:
 
 private:
     // The worker thread instance the state machine executes on
-    std::shared_ptr<Thread> m_thread = nullptr;
+    std::shared_ptr<dmq::os::Thread> m_thread = nullptr;
 };
 
 #endif // _ASYNC_STATE_MACHINE_H

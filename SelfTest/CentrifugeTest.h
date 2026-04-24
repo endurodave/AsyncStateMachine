@@ -14,7 +14,7 @@ public:
 private:
     void Poll();
 
-    Timer m_pollTimer;
+    dmq::util::Timer m_pollTimer;
     dmq::ScopedConnection m_pollTimerConn; // RAII connection handle
 
     INT m_speed;
