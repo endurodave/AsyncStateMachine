@@ -24,3 +24,5 @@ jobs:
 
     - name: Run AsyncStateMachineApp
       run: ./build/AsyncStateMachineApp  # Run the built executable
+
+
